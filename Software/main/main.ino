@@ -8,7 +8,7 @@ long interval = 1000/frequency; // pause time
 
 // Intensity specifications
 int highState = 255;
-int midState = (int) highState/2;
+int midState = (int) highState/4;
 int lowState = (int) highState/8;
 int offState = 0;
 
@@ -24,6 +24,7 @@ int currentState = 0; // mainly for blinking
 */
 int maxModes = 5;
 int currentMode = 0;
+unsigned long lastPress = millis();
 
 /* Button */
 int currentButtonState = 0;
@@ -35,21 +36,11 @@ void setup() {
     // set the digital pin as output:
     pinMode(ledPin, OUTPUT);
     pinMode(digitalIn, INPUT);
-    // attachInterrupt(digitalPinToInterrupt(digitalIn), incrementMode, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(digitalIn), incrementMode, RISING);
 }
 
 void loop() {
     // digital in value
-
-    currentButtonState = digitalRead(digitalIn);
-
-    if (currentButtonState != previousButtonState) {
-        if (currentButtonState == HIGH) {
-            currentMode = incrementMode(currentMode);
-        }
-    }
-    previousButtonState = currentButtonState;
-
     if (currentMode != 4) {
         analogWrite(ledPin, pwd_out);
     }
@@ -79,10 +70,16 @@ void loop() {
 }
 
 
-int incrementMode(int mode) {
-
-    if (mode <= maxModes-2) {
-        return mode += 1;
+int incrementMode() {
+    if ((millis() - lastPress) >= 500) {
+        Serial.println(millis() - lastPress);
+        if (currentMode <= maxModes-2) {
+            currentMode += 1;
+        } else {
+            currentMode = 0;
+        }
+        lastPress = millis();
+        Serial.println(currentMode);
     }
-    return 0;
+    
 }
